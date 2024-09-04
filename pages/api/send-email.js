@@ -30,10 +30,15 @@ export default async function handler(req, res) {
           <p><strong>Rodzaj transportu:</strong> ${transportType}</p>
           <p><strong>Numery WZ:</strong> ${wzNumbers.join(', ')}</p>
           <p><strong>Data dostawy:</strong> ${deliveryDate}</p>
+          <p><strong>Preferowany czas dostawy:</strong> ${preferredDeliveryTime}</p>
           <h2>Szczegóły dostawy:</h2>
           <p><strong>Adres:</strong> ${deliveryDetails.fullAddress}</p>
           <p><strong>Osoba kontaktowa:</strong> ${deliveryDetails.contactPerson}</p>
           <p><strong>Numer telefonu:</strong> ${deliveryDetails.phoneNumber}</p>
+          <p><strong>Dostawa częściowa:</strong> ${partialDelivery ? 'Tak' : 'Nie'}</p>
+          <p><strong>Szacunkowa waga:</strong> ${estimatedWeight} kg</p>
+          <p><strong>Szacunkowe wymiary:</strong> ${estimatedDimensions}</p>
+          <p><strong>Wymagania specjalne:</strong> ${specialRequirements}</p>
           ${deliveryDetails.additionalInfo ? `<p><strong>Dodatkowe informacje:</strong> ${deliveryDetails.additionalInfo}</p>` : ''}
         `
       };
