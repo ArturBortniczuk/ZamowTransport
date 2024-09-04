@@ -1,40 +1,4 @@
 import nodemailer from 'nodemailer';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const convertDate = (dateString) => {
-  const [day, month, year] = dateString.split('.');
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-};
-
-async function saveToSupabase(data) {
-  try {
-    const formattedDate = convertDate(data.deliveryDate); // Conversion happens here
-    const { error } = await supabase
-      .from('transport_orders')
-      .insert([
-        {
-          transport_type: data.transportType,
-          wz_numbers: data.wzNumbers,
-          delivery_date: formattedDate,
-          full_address: data.deliveryDetails.fullAddress,
-          contact_person: data.deliveryDetails.contactPerson,
-          phone_number: data.deliveryDetails.phoneNumber,
-          additional_info: data.deliveryDetails.additionalInfo || ''
-        }
-      ]);
-
-    if (error) throw error;
-    console.log('Dane zapisane do Supabase');
-  } catch (error) {
-    console.error('Błąd podczas zapisywania do Supabase:', error);
-    throw error;
-  }
-}
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -42,7 +6,7 @@ export default async function handler(req, res) {
     console.log('Otrzymane dane:', { transportType, wzNumbers, deliveryDate, deliveryDetails });
     
     try {
-      // Wysyłanie e-maila
+      // Konfiguracja transportera e-mail
       console.log('Konfiguracja transportera e-mail');
       let transporter = nodemailer.createTransport({
         host: "smtp-eltron.ogicom.pl",
@@ -51,7 +15,9 @@ export default async function handler(req, res) {
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS
-        }
+        },
+        debug: true, // Włącz debugowanie
+        logger: true // Włącz logowanie
       });
       
       console.log('Przygotowanie opcji e-maila');
@@ -76,15 +42,11 @@ export default async function handler(req, res) {
       await transporter.sendMail(mailOptions);
       console.log('E-mail wysłany pomyślnie');
       
-      // Zapisywanie do Supabase
-      console.log('Próba zapisu do Supabase');
-      await saveToSupabase({ transportType, wzNumbers, deliveryDate, deliveryDetails });
-      
-      res.status(200).json({ message: 'E-mail wysłany i dane zapisane pomyślnie' });
+      res.status(200).json({ message: 'E-mail wysłany pomyślnie' });
     } catch (error) {
-      console.error('Błąd podczas przetwarzania żądania:', error);
+      console.error('Błąd podczas wysyłania e-maila:', error);
       res.status(500).json({ 
-        error: 'Wystąpił błąd podczas przetwarzania żądania', 
+        error: 'Wystąpił błąd podczas wysyłania e-maila', 
         details: error.message,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
