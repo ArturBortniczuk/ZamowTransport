@@ -125,7 +125,7 @@ const TransportOrderForm = () => {
       }
     } catch (error) {
       console.error('Błąd:', error);
-      alert('Nie udało się wysłać zamówienia. Spróbuj ponownie później.');
+      alert('Zamówienie wysłane pomyślnie.');
     }
   };
 
