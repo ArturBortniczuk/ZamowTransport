@@ -2,12 +2,21 @@ import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { transportType, wzNumbers, deliveryDate, deliveryDetails } = req.body;
+    const { 
+      transportType, 
+      wzNumbers, 
+      deliveryDate, 
+      deliveryDetails, 
+      preferredDeliveryTime = '', 
+      partialDelivery = false, 
+      estimatedWeight = 0, 
+      estimatedDimensions = '', 
+      specialRequirements = '' 
+    } = req.body;
+    
     console.log('Otrzymane dane:', { transportType, wzNumbers, deliveryDate, deliveryDetails });
     
     try {
-      // Konfiguracja transportera e-mail
-      console.log('Konfiguracja transportera e-mail');
       let transporter = nodemailer.createTransport({
         host: "smtp-eltron.ogicom.pl",
         port: 465,
@@ -16,11 +25,11 @@ export default async function handler(req, res) {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS
         },
-        debug: true, // Włącz debugowanie
-        logger: true // Włącz logowanie
+        debug: true,
+        logger: true,
+        timeout: 60000 // Opcjonalny timeout
       });
-      
-      console.log('Przygotowanie opcji e-maila');
+
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: 'logistyka@grupaeltron.pl',
@@ -42,14 +51,12 @@ export default async function handler(req, res) {
           ${deliveryDetails.additionalInfo ? `<p><strong>Dodatkowe informacje:</strong> ${deliveryDetails.additionalInfo}</p>` : ''}
         `
       };
-      
-      console.log('Próba wysłania e-maila');
+
       await transporter.sendMail(mailOptions);
-      console.log('E-mail wysłany pomyślnie');
-      
       res.status(200).json({ message: 'E-mail wysłany pomyślnie' });
+      
     } catch (error) {
-      console.error('Błąd podczas wysyłania e-maila:', error);
+      console.error('Błąd podczas wysyłania e-maila:', error.stack);
       res.status(500).json({ 
         error: 'Wystąpił błąd podczas wysyłania e-maila', 
         details: error.message,
