@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { X } from 'lucide-react';
-import { Select, SelectItem } from "@/components/ui/select"; // Importuj Select i SelectItem dla magazynów
 
 const TransportOrderForm = () => {
   const [step, setStep] = useState(1);
@@ -289,19 +288,19 @@ const TransportOrderForm = () => {
         {transportType === "warehouse" && (
           <div className="mt-4">
             <Label htmlFor="warehouseLocation">Wybierz magazyn:</Label>
-            <Select
+            <select
               id="warehouseLocation"
               value={warehouseLocation}
-              onValueChange={setWarehouseLocation}
-              className="mt-2"
+              onChange={(e) => setWarehouseLocation(e.target.value)}
+              className="mt-2 w-full p-2 border border-gray-300 rounded-md"
             >
-              <SelectItem value="">Wybierz magazyn...</SelectItem>
+              <option value="">Wybierz magazyn...</option>
               {warehouseOptions.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
+                <option key={option.id} value={option.id}>
                   {option.label}
-                </SelectItem>
+                </option>
               ))}
-            </Select>
+            </select>
           </div>
         )}
         
