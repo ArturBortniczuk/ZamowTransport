@@ -158,7 +158,7 @@ const TransportOrderForm = () => {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return !!selectedWarehouse;
+        return !!transportType && (!!selectedWarehouse || transportType === 'producer');
       case 2:
         return wzNumbers.some(isWzValid);
       case 3:
@@ -186,10 +186,12 @@ const TransportOrderForm = () => {
           <h3 className="font-semibold">Rodzaj transportu:</h3>
           <p>{transportOptions.find(option => option.id === transportType)?.label}</p>
         </div>
-        <div>
-          <h3 className="font-semibold">Magazyn:</h3>
-          <p>{warehouseOptions.find(option => option.id === selectedWarehouse)?.label}</p>
-        </div>
+        {transportType === "warehouse" && (
+          <div>
+            <h3 className="font-semibold">Magazyn:</h3>
+            <p>{warehouseOptions.find(option => option.id === selectedWarehouse)?.label}</p>
+          </div>
+        )}
         {transportType === "producer" && (
           <div>
             <h3 className="font-semibold">Miejsce załadunku:</h3>
@@ -261,7 +263,7 @@ const TransportOrderForm = () => {
     <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-          {step === 1 ? 'Wybór magazynu' : 
+          {step === 1 ? 'Wybór rodzaju transportu' : 
            step === 2 ? 'Wprowadzanie numerów WZ' : 
            step === 3 ? 'Wybór daty dostawy' :
            step === 4 ? 'Szczegóły dostawy' :
@@ -269,7 +271,7 @@ const TransportOrderForm = () => {
            'Podsumowanie'}
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          {step === 1 ? 'Wybierz magazyn dla Twojego zamówienia.' : 
+          {step === 1 ? 'Wybierz preferowany rodzaj transportu dla Twojego zamówienia.' : 
            step === 2 ? 'Wprowadź numery WZ dla Twojego zamówienia.' :
            step === 3 ? 'Wybierz preferowaną datę i godziny dostawy.' :
            step === 4 ? 'Wprowadź szczegóły dostawy.' :
@@ -279,6 +281,25 @@ const TransportOrderForm = () => {
       </CardHeader>
       <CardContent>
         {step === 1 && (
+          <RadioGroup
+            value={transportType}
+            onValueChange={setTransportType}
+            className="space-y-3"
+          >
+            {transportOptions.map((option) => (
+              <div key={option.id} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200">
+                <RadioGroupItem value={option.id} id={option.id} />
+                <Label 
+                  htmlFor={option.id} 
+                  className="font-medium cursor-pointer flex-grow text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        )}
+        {transportType === "warehouse" && (
           <div>
             <Label htmlFor="warehouse">Wybierz magazyn</Label>
             <select
@@ -345,6 +366,57 @@ const TransportOrderForm = () => {
                 name="buildingNumber"
                 value={loadingLocation.buildingNumber}
                 onChange={handleLoadingLocationChange}
+                placeholder="Wprowadź numer budynku"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="unloadingCity">Miejsce rozładunku - miasto</Label>
+              <Input
+                id="unloadingCity"
+                name="city"
+                value={unloadingLocation.city}
+                onChange={handleUnloadingLocationChange}
+                placeholder="Wprowadź miasto"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="unloadingPostalCode">Kod pocztowy</Label>
+              <InputMask
+                mask="99-999"
+                value={unloadingLocation.postalCode}
+                onChange={handleUnloadingLocationChange}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    id="unloadingPostalCode"
+                    name="postalCode"
+                    placeholder="00-000"
+                    className="mt-1"
+                  />
+                )}
+              </InputMask>
+            </div>
+            <div>
+              <Label htmlFor="unloadingStreet">Ulica</Label>
+              <Input
+                id="unloadingStreet"
+                name="street"
+                value={unloadingLocation.street}
+                onChange={handleUnloadingLocationChange}
+                placeholder="Wprowadź ulicę"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="unloadingBuildingNumber">Numer budynku</Label>
+              <Input
+                id="unloadingBuildingNumber"
+                name="buildingNumber"
+                value={unloadingLocation.buildingNumber}
+                onChange={handleUnloadingLocationChange}
                 placeholder="Wprowadź numer budynku"
                 className="mt-1"
               />
