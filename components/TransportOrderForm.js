@@ -15,8 +15,18 @@ const TransportOrderForm = () => {
   const [step, setStep] = useState(1);
   const [transportType, setTransportType] = useState('');
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
-  const [loadingLocation, setLoadingLocation] = useState('');
-  const [unloadingLocation, setUnloadingLocation] = useState('');
+  const [loadingLocation, setLoadingLocation] = useState({
+    city: '',
+    postalCode: '',
+    street: '',
+    buildingNumber: ''
+  });
+  const [unloadingLocation, setUnloadingLocation] = useState({
+    city: '',
+    postalCode: '',
+    street: '',
+    buildingNumber: ''
+  });
   const [wzNumbers, setWzNumbers] = useState(['']);
   const [deliveryDate, setDeliveryDate] = useState(null);
   const [deliveryDetails, setDeliveryDetails] = useState({
@@ -36,14 +46,13 @@ const TransportOrderForm = () => {
   const [preferredDeliveryTime, setPreferredDeliveryTime] = useState('');
   const [specialRequirements, setSpecialRequirements] = useState('');
   const [estimatedWeight, setEstimatedWeight] = useState('');
-  const [estimatedLength, setEstimatedLength] = useState(''); // Zamieniamy wymiary na długość
+  const [estimatedLength, setEstimatedLength] = useState('');
 
   const transportOptions = [
     { id: "producer", label: "Transport od producenta" },
     { id: "warehouse", label: "Magazyn własny" }
   ];
 
-  // Opcje lokalizacji magazynów
   const warehouseOptions = [
     { id: "lublin", label: "Magazyn Lublin" },
     { id: "krakow", label: "Magazyn Kraków" },
@@ -86,6 +95,16 @@ const TransportOrderForm = () => {
   const handleDeliveryDetailsChange = (e) => {
     const { name, value } = e.target;
     setDeliveryDetails(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLoadingLocationChange = (e) => {
+    const { name, value } = e.target;
+    setLoadingLocation(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUnloadingLocationChange = (e) => {
+    const { name, value } = e.target;
+    setUnloadingLocation(prev => ({ ...prev, [name]: value }));
   };
 
   const handleRequesterChange = (e) => {
@@ -139,11 +158,11 @@ const TransportOrderForm = () => {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return !!selectedWarehouse; // Magazyn musi być wybrany na pierwszym kroku
+        return !!selectedWarehouse;
       case 2:
         return wzNumbers.some(isWzValid);
       case 3:
-        return !!deliveryDate && preferredDeliveryTime.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/); // Preferowane godziny w formacie HH:MM-HH:MM
+        return !!deliveryDate && preferredDeliveryTime.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/);
       case 4:
         return deliveryDetails.city && 
                deliveryDetails.postalCode && 
@@ -174,9 +193,9 @@ const TransportOrderForm = () => {
         {transportType === "producer" && (
           <div>
             <h3 className="font-semibold">Miejsce załadunku:</h3>
-            <p>{loadingLocation}</p>
+            <p>{loadingLocation.street} {loadingLocation.buildingNumber}, {loadingLocation.postalCode} {loadingLocation.city}</p>
             <h3 className="font-semibold">Miejsce rozładunku:</h3>
-            <p>{unloadingLocation}</p>
+            <p>{unloadingLocation.street} {unloadingLocation.buildingNumber}, {unloadingLocation.postalCode} {unloadingLocation.city}</p>
           </div>
         )}
         <div>
@@ -280,22 +299,53 @@ const TransportOrderForm = () => {
         {transportType === "producer" && (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="loadingLocation">Miejsce załadunku</Label>
+              <Label htmlFor="loadingCity">Miejsce załadunku - miasto</Label>
               <Input
-                id="loadingLocation"
-                value={loadingLocation}
-                onChange={(e) => setLoadingLocation(e.target.value)}
-                placeholder="Wprowadź miejsce załadunku"
+                id="loadingCity"
+                name="city"
+                value={loadingLocation.city}
+                onChange={handleLoadingLocationChange}
+                placeholder="Wprowadź miasto"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="unloadingLocation">Miejsce rozładunku</Label>
+              <Label htmlFor="loadingPostalCode">Kod pocztowy</Label>
+              <InputMask
+                mask="99-999"
+                value={loadingLocation.postalCode}
+                onChange={handleLoadingLocationChange}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    id="loadingPostalCode"
+                    name="postalCode"
+                    placeholder="00-000"
+                    className="mt-1"
+                  />
+                )}
+              </InputMask>
+            </div>
+            <div>
+              <Label htmlFor="loadingStreet">Ulica</Label>
               <Input
-                id="unloadingLocation"
-                value={unloadingLocation}
-                onChange={(e) => setUnloadingLocation(e.target.value)}
-                placeholder="Wprowadź miejsce rozładunku"
+                id="loadingStreet"
+                name="street"
+                value={loadingLocation.street}
+                onChange={handleLoadingLocationChange}
+                placeholder="Wprowadź ulicę"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="loadingBuildingNumber">Numer budynku</Label>
+              <Input
+                id="loadingBuildingNumber"
+                name="buildingNumber"
+                value={loadingLocation.buildingNumber}
+                onChange={handleLoadingLocationChange}
+                placeholder="Wprowadź numer budynku"
                 className="mt-1"
               />
             </div>
@@ -352,14 +402,21 @@ const TransportOrderForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="preferredDeliveryTime">Preferowane godziny dostawy (format: HH:MM-HH:MM)</Label>
-              <Input
-                id="preferredDeliveryTime"
+              <Label htmlFor="preferredDeliveryTime">Preferowane godziny dostawy (format: HHMMHHMM)</Label>
+              <InputMask
+                mask="99:99-99:99"
                 value={preferredDeliveryTime}
                 onChange={(e) => setPreferredDeliveryTime(e.target.value)}
-                placeholder="np. 10:00-14:00"
-                className="mt-1"
-              />
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    id="preferredDeliveryTime"
+                    placeholder="np. 1000-1400"
+                    className="mt-1"
+                  />
+                )}
+              </InputMask>
             </div>
           </div>
         )}
