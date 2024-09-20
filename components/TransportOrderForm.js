@@ -33,12 +33,10 @@ const TransportOrderForm = () => {
     email: '',
     department: ''
   });
-  const [priority, setPriority] = useState('normal');
   const [preferredDeliveryTime, setPreferredDeliveryTime] = useState('');
-  const [partialDelivery, setPartialDelivery] = useState(false);
   const [specialRequirements, setSpecialRequirements] = useState('');
   const [estimatedWeight, setEstimatedWeight] = useState('');
-  const [estimatedDimensions, setEstimatedDimensions] = useState('');
+  const [estimatedLength, setEstimatedLength] = useState(''); // Zamieniamy wymiary na długość
 
   const transportOptions = [
     { id: "producer", label: "Transport od producenta" },
@@ -53,12 +51,6 @@ const TransportOrderForm = () => {
     { id: "katowice", label: "Magazyn Katowice" },
     { id: "gdynia", label: "Magazyn Gdynia" },
     { id: "wroclaw", label: "Magazyn Wrocław" }
-  ];
-
-  const priorityOptions = [
-    { id: "normal", label: "Normalny" },
-    { id: "urgent", label: "Pilny" },
-    { id: "express", label: "Ekspresowy" }
   ];
 
   const handleNext = () => {
@@ -114,12 +106,10 @@ const TransportOrderForm = () => {
         fullAddress: `${deliveryDetails.street} ${deliveryDetails.buildingNumber}, ${deliveryDetails.postalCode} ${deliveryDetails.city}`
       },
       requester,
-      priority,
       preferredDeliveryTime,
-      partialDelivery,
       specialRequirements,
       estimatedWeight,
-      estimatedDimensions
+      estimatedLength
     };
 
     try {
@@ -149,11 +139,11 @@ const TransportOrderForm = () => {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return !!transportType;
+        return !!selectedWarehouse; // Magazyn musi być wybrany na pierwszym kroku
       case 2:
         return wzNumbers.some(isWzValid);
       case 3:
-        return !!deliveryDate;
+        return !!deliveryDate && preferredDeliveryTime.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/); // Preferowane godziny w formacie HH:MM-HH:MM
       case 4:
         return deliveryDetails.city && 
                deliveryDetails.postalCode && 
@@ -177,12 +167,10 @@ const TransportOrderForm = () => {
           <h3 className="font-semibold">Rodzaj transportu:</h3>
           <p>{transportOptions.find(option => option.id === transportType)?.label}</p>
         </div>
-        {transportType === "warehouse" && (
-          <div>
-            <h3 className="font-semibold">Magazyn:</h3>
-            <p>{warehouseOptions.find(option => option.id === selectedWarehouse)?.label}</p>
-          </div>
-        )}
+        <div>
+          <h3 className="font-semibold">Magazyn:</h3>
+          <p>{warehouseOptions.find(option => option.id === selectedWarehouse)?.label}</p>
+        </div>
         {transportType === "producer" && (
           <div>
             <h3 className="font-semibold">Miejsce załadunku:</h3>
@@ -204,6 +192,10 @@ const TransportOrderForm = () => {
           <p>{deliveryDate ? format(deliveryDate, 'dd.MM.yyyy', { locale: pl }) : 'Nie wybrano'}</p>
         </div>
         <div>
+          <h3 className="font-semibold">Preferowane godziny dostawy:</h3>
+          <p>{preferredDeliveryTime || 'Nie określono'}</p>
+        </div>
+        <div>
           <h3 className="font-semibold">Adres dostawy:</h3>
           <p>{deliveryDetails.street} {deliveryDetails.buildingNumber}</p>
           <p>{deliveryDetails.postalCode} {deliveryDetails.city}</p>
@@ -223,24 +215,12 @@ const TransportOrderForm = () => {
           <p>{requester.department}</p>
         </div>
         <div>
-          <h3 className="font-semibold">Priorytet:</h3>
-          <p>{priorityOptions.find(option => option.id === priority)?.label}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Preferowany czas dostawy:</h3>
-          <p>{preferredDeliveryTime || 'Nie określono'}</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Dostawa częściowa:</h3>
-          <p>{partialDelivery ? 'Tak' : 'Nie'}</p>
-        </div>
-        <div>
           <h3 className="font-semibold">Szacunkowa waga:</h3>
           <p>{estimatedWeight || 'Nie określono'}</p>
         </div>
         <div>
-          <h3 className="font-semibold">Szacunkowe wymiary:</h3>
-          <p>{estimatedDimensions || 'Nie określono'}</p>
+          <h3 className="font-semibold">Szacunkowa długość ładunku:</h3>
+          <p>{estimatedLength || 'Nie określono'}</p>
         </div>
         {specialRequirements && (
           <div>
@@ -262,7 +242,7 @@ const TransportOrderForm = () => {
     <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-          {step === 1 ? 'Wybór rodzaju transportu' : 
+          {step === 1 ? 'Wybór magazynu' : 
            step === 2 ? 'Wprowadzanie numerów WZ' : 
            step === 3 ? 'Wybór daty dostawy' :
            step === 4 ? 'Szczegóły dostawy' :
@@ -270,9 +250,9 @@ const TransportOrderForm = () => {
            'Podsumowanie'}
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          {step === 1 ? 'Wybierz preferowany rodzaj transportu dla Twojego zamówienia.' : 
+          {step === 1 ? 'Wybierz magazyn dla Twojego zamówienia.' : 
            step === 2 ? 'Wprowadź numery WZ dla Twojego zamówienia.' :
-           step === 3 ? 'Wybierz preferowaną datę dostawy.' :
+           step === 3 ? 'Wybierz preferowaną datę i godziny dostawy.' :
            step === 4 ? 'Wprowadź szczegóły dostawy.' :
            step === 5 ? 'Podaj dane osoby zlecającej transport.' :
            'Sprawdź poprawność wprowadzonych danych.'}
@@ -280,25 +260,6 @@ const TransportOrderForm = () => {
       </CardHeader>
       <CardContent>
         {step === 1 && (
-          <RadioGroup
-            value={transportType}
-            onValueChange={setTransportType}
-            className="space-y-3"
-          >
-            {transportOptions.map((option) => (
-              <div key={option.id} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200">
-                <RadioGroupItem value={option.id} id={option.id} />
-                <Label 
-                  htmlFor={option.id} 
-                  className="font-medium cursor-pointer flex-grow text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  {option.label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        )}
-        {transportType === "warehouse" && (
           <div>
             <Label htmlFor="warehouse">Wybierz magazyn</Label>
             <select
@@ -391,7 +352,7 @@ const TransportOrderForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="preferredDeliveryTime">Preferowane godziny dostawy</Label>
+              <Label htmlFor="preferredDeliveryTime">Preferowane godziny dostawy (format: HH:MM-HH:MM)</Label>
               <Input
                 id="preferredDeliveryTime"
                 value={preferredDeliveryTime}
@@ -507,24 +468,15 @@ const TransportOrderForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="estimatedDimensions">Szacunkowe wymiary (cm)</Label>
+              <Label htmlFor="estimatedLength">Szacunkowa długość ładunku (cm)</Label>
               <Input
-                id="estimatedDimensions"
-                value={estimatedDimensions}
-                onChange={(e) => setEstimatedDimensions(e.target.value)}
-                placeholder="np. 100x50x30"
+                id="estimatedLength"
+                type="number"
+                value={estimatedLength}
+                onChange={(e) => setEstimatedLength(e.target.value)}
+                placeholder="np. 200"
                 className="mt-1"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="partialDelivery"
-                checked={partialDelivery}
-                onChange={(e) => setPartialDelivery(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              />
-              <Label htmlFor="partialDelivery">Zgoda na dostawę częściową</Label>
             </div>
           </div>
         )}
@@ -563,21 +515,6 @@ const TransportOrderForm = () => {
                 placeholder="Dział handlowy"
                 className="mt-1"
               />
-            </div>
-            <div>
-              <Label htmlFor="priority">Priorytet zamówienia</Label>
-              <select
-                id="priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {priorityOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
             </div>
             <div>
               <Label htmlFor="specialRequirements">Wymagania specjalne</Label>
